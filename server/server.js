@@ -30,10 +30,14 @@ app.post('/login', async (req, res) => {
 });
 
 const typeDefs = readFileSync('./schema.graphql', 'utf-8');
+const context = async ({ req }) => {
+  const user = await User.findById(req.auth?.sub);
+  return { user };
+}; 
 const apolloServer = new ApolloServer({typeDefs, resolvers});
 await apolloServer.start();
 
-app.use('/graphql', cors(), express.json(), expressMiddleware(apolloServer));
+app.use('/graphql', cors(), express.json(), expressMiddleware(apolloServer, {context}));
 
 app.listen({ port: PORT }, () => {
   console.log(`Server running on port ${PORT}`);
